@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- <meta http-equiv="Content-Security-Policy" content="script-src 'self'"> -->
+    <!-- <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'"
+    />
+    <meta
+      http-equiv="X-Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'"
+    /> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Me</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="render.js"></script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body x-data="app">
+    <main class="flex flex-col bg-blue-500 h-screen items-center">
+        <span class="bold text-white">SUMMARY</span>
+        <div class="py-10">SOME STUFF</div>
+        <button class="border w-1/2 border-1 py-4 cursor-pointer" @click="openBoard=!openBoard">
+            <span class="bold text-white">BOARD</span>
+        </button>
+        
+        <!-- FULL SCREEN BOARD -->
+        <section x-clock x-show="openBoard" class="fixed w-full h-screen bg-gray-700">
+            <div class="flex text-white">
+                <div class="ml-auto py-2">
+                    <button class="px-4" @click="addGoal=!addGoal">MENU</button>
+                    <button class="px-4" @click="openBoard=false">CLOSE</button>
+                </div>
+            </div>
+            <div class="flex gap-x-2 text-gray-300 px-2">
+                <div class="flex-grow bg-gray-500 p-2 rounded-md">
+                    <div class="font-bold text-lg"> 
+                        <span>GOALS</span>
+                        <template x-for="ulGoal in goals">
+                            <div class="bg-gray-900 p-2 rounded-md mb-2">
+                                <div class="w-full bg-red-400 rounded-full">
+                                    <div class="h-1 bg-green-500 rounded-full" :style="{width:percentDone(ulGoal)}"></div>
+                                </div>
+                                <div x-text="`${ulGoal.name} (${percentDone(ulGoal)})`" class="text-xl"></div>
+                                <template x-for="sub in ulGoal.subGoal">
+                                    <div x-text="sub" 
+                                        class="indent-5 text-md cursor-pointer hover:opacity-70" 
+                                        :class="textFormat(sub)" @click="saveWeekly(sub)"></div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                    <!-- <div class="font-bold text-lg">COMMON TASKS</div> -->
+                    <!-- SOON -->
+                </div>
+                <div class="flex-grow bg-gray-500 p-2 rounded-md">
+                    <div class="font-bold text-lg">WEEKLY</div>
+                        <template x-for="task in weekly">
+                            <div class="bg-gray-900 p-2 rounded-md flex justify-between mb-2">
+                                <!-- <button class="" @click="removeItem(task)">&lt;</button> -->
+                                <svg @click="removeItem(task)" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 cursor-pointer">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                                </svg>                                  
+                                <span x-text="task"></span>
+                                <!-- <button class="" @click="addDaily(task)">&gt;</button> -->
+                                <svg @click="addDaily(task)" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 cursor-pointer">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                </svg>
+                            </div>
+                        </template>
+                </div>
+                <div class="flex-grow bg-gray-500 p-2 rounded-md">
+                    <div class="font-bold text-lg">DAILY</div>
+                    <template x-for="task in daily">
+                        <div class="bg-gray-900 p-2 rounded-md flex justify-between mb-2">
+                            <!-- <button class="" @click="removeDaily(task)">&lt;</button> -->
+                            <svg @click="removeDaily(task)" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 cursor-pointer">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                            </svg>   
+                            <span x-text="task"></span>
+                            <!-- <button class="" @click="doneDaily(task)">&gt;</button> -->
+                            <svg @click="doneDaily(task)" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 cursor-pointer">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                            </svg>
+                        </div>
+                    </template>
+                    <div>
+
+                    </div>
+                </div>
+                <div class="flex-grow bg-gray-500 p-2 rounded-md">
+                    <div class="font-bold text-lg">COMPLETED</div>
+                    <template x-for="task in complete">
+                        <div class="bg-gray-900 p-2 rounded-md mb-2 flex justify-between">
+                            <span x-text="task"></span>
+                            <svg @click="deleteComplete(task)" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-red-500 cursor-pointer">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                            </svg>
+                        </div>
+                    </template>
+                    <div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- FULL SCREEN BOARD -->
+
+        
+
+    </main>
+    <!-- ADD  -->
+    <div class="fixed translate-x-full right-0 top-0 ml-auto p-5 h-full w-1/3 bg-gray-300 transition-all flex flex-col" :class="addGoal && 'translate-x-0'">
+        <button @click="addGoal=false" class="bg-gray-500 px-4 py-2 text-white">CLOSE</button><br>
+        <input placeholder="Enter Goal" x-ref="inputGoal" type="text" class="px-4 py-2 "> <button class="px-4 py-2 bg-green-500 text-white" @click="saveGoal">ADD GOAL</button>
+        <input placeholder="Add Checklist to Goal" x-ref="inputSubGoal" type="text" class="px-4 py-2 mt-10">
+        <select x-ref="selectSubGoal" @change="saveSubGoal($refs.inputSubGoal.value,$el.value)" class="px-4 py-2">
+            <option selected disabled value="">-SELECT GOAL TO ADD CHECKLIST-</option>
+            <template x-for="goal in goals">
+                <option :value="goal.name" x-text="goal.name"></option>
+            </template>
+        </select>
+        <div class="mt-10 flex flex-col">
+            <select x-ref="deleteGoal" class="px-4 py-2">
+                <option selected value="">-SELECT GOAL TO DELETE-</option>
+                <template x-for="goal in goals">
+                    <option :value="goal.name" x-text="goal.name"></option>
+                </template>
+            </select>
+            <select x-ref="deleteSubgoal" class="px-4 py-2">
+                <option selected value="">-SELECT SUBGOAL TO DELETE-</option>
+                <template x-for="goal in goals">
+                    <template x-for="sub in goal.subGoal">
+                        <option :value="sub" x-text="sub"></option>
+                    </template>
+                </template>
+            </select>
+            <button class="bg-red-500 px-4 py-2 text-white" @click="deleteItem">DELETE</button>
+        </div>
+        <button x-data="{foo:false}" :class="foo&&'opacity-50'" class="bg-orange-500 px-4 py-2 mt-10 text-white" @click="exportData(localStorage)">Export</button>
+    </div>
+    <script>
+        const fs = require("fs")
+        window.addEventListener('alpine:init', () => {
+            
+            Alpine.data('app', () => ({
+                openBoard: true,
+                addGoal: false,
+                goals: JSON.parse(localStorage.getItem('goals'))||[],
+                weekly: JSON.parse(localStorage.getItem('weekly'))||[],
+                daily: JSON.parse(localStorage.getItem('daily'))||[],
+                complete: JSON.parse(localStorage.getItem('complete'))||[],
+
+                exportData(data){
+                    const {weekly,daily,complete,goals} = data
+                    const save = {}
+                    save.weekly = JSON.parse(weekly)
+                    save.daily = JSON.parse(daily)
+                    save.complete = JSON.parse(complete)
+                    save.goals = JSON.parse(goals)
+
+                    const jsonString = JSON.stringify(save, null, 2);
+
+                    fs.writeFile("localStorage.json", jsonString, "utf8", (err) => {
+                    if (err) {
+                        console.error("Error writing JSON file:", err);
+                    } else {
+                        console.log("JSON file has been saved.");
+                    }
+                    });
+                },
+
+                textFormat(x){
+                    const arr = this.weekly.concat(this.daily)
+                    if(arr.includes(x)) return 'opacity-50 cursor-not-allowed'
+                    else if(this.complete.includes(x)) return 'text-green-200 cursor-not-allowed'
+                    else return
+                },
+                percentDone(goal){
+                    const matchingItems = goal.subGoal.filter(item => this.complete.includes(item));
+                    const percentage = (matchingItems.length / goal.subGoal.length) * 100;
+                    return `${percentage.toFixed(2)}%`;
+                    // return '60%'
+                },
+                deleteComplete(d){
+                    this.complete = this.complete.filter(item => item !== d)
+                    this.setItem('complete',this.complete)
+                },
+                deleteItem(){
+                    const goal = this.$refs.deleteGoal.value
+                    const subGoal = this.$refs.deleteSubgoal.value
+
+                    this.goals = this.goals.filter(item => item.name !== goal)
+                    this.goals = this.goals.map(obj => {
+                        return {
+                            name: obj.name,
+                            subGoal: obj.subGoal.filter(item => item !== subGoal)
+                        };
+                    });
+
+                    this.setItem('goals',this.goals)
+
+                    this.$refs.deleteGoal.value = ''
+                    this.$refs.deleteSubgoal.value = ''
+                    
+                },
+                removeItem(x){
+                    this.weekly = this.weekly.filter(item => item !== x)
+                    this.setItem('weekly',this.weekly)
+                },
+                addDaily(d){
+                    this.daily.push(d)
+                    this.weekly = this.weekly.filter(item => item !== d)
+                    this.setItem('daily',this.daily)
+                    this.setItem('weekly',this.weekly)
+                },
+                removeDaily(d){
+                    this.daily = this.daily.filter(item => item !== d)
+                    this.weekly.push(d)
+                    this.setItem('daily',this.daily)
+                    this.setItem('weekly',this.weekly)
+                },
+                doneDaily(d){
+                    this.complete.push(d)
+                    this.daily= this.daily.filter(item => item !== d)
+                    this.setItem('complete',this.complete)
+                    this.setItem('daily',this.daily)
+                },
+                getItem(k){
+                    return JSON.parse(localStorage.getItem(k))
+                },
+                arrayDiff(goal){
+                    return goal.subGoal.filter(g=>!this.weekly.map(x=>x).includes(g.name)||!this.daily.map(x=>x).includes(g.name))
+                },
+                setItem(k,v){
+                    const value = JSON.stringify(v)
+                    JSON.stringify(localStorage.setItem(k,value))
+                },
+                saveWeekly(weekly){
+                    if(this.daily.includes(weekly)||this.weekly.includes(weekly)||this.complete.includes(weekly)) return
+                    this.weekly.push(weekly)
+                    this.setItem('weekly',this.weekly)
+                },
+                saveSubGoal(sub,goal){
+
+                    if(!sub||!goal) return this.$refs.selectSubGoal.value = ''
+
+                    // Push an item into the array of objects dynamically
+                    const newItem = sub;
+                    const targetObj = this.goals.find(obj => obj.name === goal);
+
+                    if (targetObj) targetObj.subGoal.push(newItem)
+
+                    this.setItem('goals',this.goals)
+                    this.$refs.inputSubGoal.value = ''
+                    this.$refs.selectSubGoal.value = ''
+                },
+                saveGoal(){
+                    const goal = this.$refs.inputGoal.value
+                    if(!goal) return
+                    this.goals.push({name:goal,subGoal:[]})
+                    this.setItem('goals',this.goals)
+
+                    this.$refs.inputGoal.value = ''
+                },
+
+
+            }))
+             
+        });
+    </script>
+</body>
+</html>

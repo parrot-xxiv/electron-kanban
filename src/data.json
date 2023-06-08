@@ -1,0 +1,31 @@
+{
+    "Goals": [
+        { 
+            "Goal1": [
+                {
+                    "Name": "Create foo",
+                    "Done": false,
+                    "Date": null
+                }
+            ] 
+        },
+        { 
+            "Goal2": [
+                {
+                    "Name": "Create foo",
+                    "Done": false,
+                    "Date": null
+                }
+            ] 
+        }
+    ],
+    "ToDo": {
+        "Success Rate": 80,
+        "Tasks":[
+            {
+                "name": "task 1",
+                "lastDone": "date"
+            }
+        ]  
+    }
+}
